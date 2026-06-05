@@ -28,24 +28,6 @@ OPTB:   imm16     is tbb=3; imm16 { export *:1 imm16; }
 ADDRIX: (imm16,X) is X; imm16     { addr:2 = imm16 + zext(X); tmp:2 = *:2 addr; export tmp; }
 
 # Instructions
-
-:ADC ZIOP                      is (cc=2 & aaa=3) ... & ZIOP
-{
-    local op1 = ZIOP;
-    local tmpC = C;
-
-    C = carry(A, op1);
-    A = A + op1 + tmpC;
-    resultFlags(A);
-    V = C;
-}
-
-:AND ZIOP                      is (cc=2 & aaa=1) ... & ZIOP
-{
-    A = A & ZIOP;
-    resultFlags(A);
-}
-
 :BBR "#"bitindex, imm8, REL    is (action=0 & optype=0xF) & bitindex ; imm8 ; REL {
     local ptr:2 = imm8;
     local value:1 = *:1 ptr;
@@ -60,71 +42,16 @@ ADDRIX: (imm16,X) is X; imm16     { addr:2 = imm16 + zext(X); tmp:2 = *:2 addr; 
     if (jump) goto REL;
 }
 
-:BIT "#"imm8                   is op=0x89; imm8
-{
-    local value:1 = imm8;
-    N = (value & 0x80) == 0x80;
-    V = (value & 0x40) == 0x40;
-    value = A & value;
-    Z = (value == 0);
-}
 
-:BIT OP2                       is (op=0x34 | op=0x3C) ... & OP2
-{
-    N = (OP2 & 0x80) == 0x80;
-    V = (OP2 & 0x40) == 0x40;
-    local value = A & OP2;
-    Z = (value == 0);
-}
 
 :BRA  REL                      is op=0x80; REL
 {
     goto REL;
 }
 
-:CMP ZIOP                      is (cc=2 & aaa=6) ... & ZIOP
-{
-    local op1 = ZIOP;
-    local tmp = A - op1;
-    resultFlags(tmp);
-    C = (A >= op1);
-}
-
-:DEC A                         is op=0x3A & A
-{
-    local tmp = A - 1;
-    A = tmp;
-    resultFlags(tmp);
-}
-
-:EOR ZIOP                      is (cc=2 & aaa=2) ... & ZIOP
-{
-    local op1 = ZIOP;
-    A = A ^ op1;
-    resultFlags(A);
-}
-
-:INC A                         is op=0x1A & A
-{
-    A = A + 1;
-    resultFlags(A);
-}
-
 :JMP ADDRIX                    is (op=0x7C); ADDRIX
 {
     goto [ADDRIX];
-}
-
-:LDA ZIOP                      is (cc=2 & aaa=5) ... & ZIOP
-{
-    A = ZIOP;
-    resultFlags(A);
-}
-
-:ORA  ZIOP                     is (cc=2 & aaa=0) ... & ZIOP
-{
-    A = A | ZIOP;
-    resultFlags(A);
 }
 
 :PHX                           is op=0xDA
@@ -160,15 +87,6 @@ ADDRIX: (imm16,X) is X; imm16     { addr:2 = imm16 + zext(X); tmp:2 = *:2 addr; 
     *:1 ptr = value;
 }
 
-:SBC ZIOP                      is (cc=2 & aaa=7) ... & ZIOP
-{
-    local op1 = ZIOP;
-    local result = A - op1 - !C;
-
-    subtraction_flags1(A, op1, result);
-    A = result;
-}
-
 :SMB "#"bitindex, imm8         is (action=1 & optype=7) & bitindex ; imm8 {
     local ptr:2 = imm8;
     local value:1 = *:1 ptr;
@@ -176,47 +94,144 @@ ADDRIX: (imm16,X) is X; imm16     { addr:2 = imm16 + zext(X); tmp:2 = *:2 addr; 
     *:1 ptr = value;
 }
 
-:STA ZIOP                      is (cc=2 & aaa=4) ... & ZIOP
-{
-    ZIOP = A;
-}
 
-:STZ imm8                      is op=0x64 ; imm8
-{
-    local tmp:2 = imm8;
-    *:1 tmp = 0;
-}
+######## Missing Instructions ##############
+:MPY_unimpl                   is op=0x02
+{}
 
-:STZ imm8,X                    is op=0x74 & X ; imm8
-{
-    local tmp:2 = zext(imm8 + X);
-    *:1 tmp = 0;
-}
+:TIP_unimpl                   is op=0x03
+{}
 
-:STZ imm16                     is op=0x9C ; imm16
-{
-    local tmp:2 = imm16;
-    *:1 tmp = 0;
-}
+:JSB0_unimpl                  is op=0x0B
+{}
 
-:STZ imm16,X                   is op=0x9E & X ; imm16
-{
-    local tmp:2 = imm16 + zext(X);
-    *:1 tmp = 0;
-}
+:JP1_unimpl                   is op=0x0C
+{}
 
-:TRB OPTB                      is (tcc=0 & taaa=0 & td=1) ... & OPTB
-{
-    local op1 = OPTB;
-    local result = (~A) & op1;
-    OPTB = result;
-    Z = result == 0;
-}
+:LAB_unimpl                   is op=0x13
+{}
 
-:TSB OPTB                      is (tcc=0 & taaa=0 & td=0) ... & OPTB
-{
-    local op1 = OPTB;
-    local result = A | op1;
-    OPTB = result;
-    Z = result == 0;
-}
+:NEG_unimpl                   is op=0x1A
+{}
+
+:JSB1_unimpl                  is op=0x1B
+{}
+
+:MPX_unimpl                   is op=0x12
+{}
+
+:PSH_unimpl                   is op=0x22
+{}
+
+:PHW_unimpl                   is op=0x23
+{}
+
+:JSB2_unimpl                  is op=0x2B
+{}
+
+:PUL_unimpl                   is op=0x32
+{}
+
+:PLW_unimpl                   is op=0x33
+{}
+
+:ASR_unimpl                   is op=0x3A
+{}
+
+:JSB3_unimpl                  is op=0x3B
+{}
+
+:RND_unimpl                   is op=0x42
+{}
+
+:JSB4_unimpl                  is op=0x4B
+{}
+
+:CLW_unimpl                   is op=0x52
+{}
+
+:JSB5_unimpl                  is op=0x5B
+{}
+
+:TAW_unimpl                   is op=0x62
+{}
+
+:ADD_unimpl                   is op=0x64
+{}
+
+:JSB6_unimpl                  is op=0x6B
+{}
+
+:TWA_unimpl                   is op=0x72
+{}
+
+:ADD_unimpl                   is op=0x74
+{}
+
+:JSB7_unimpl                  is op=0x7B
+{}
+
+:ADD_unimpl                  is op=0x89
+{}
+
+:NXT_unimpl                  is op=0x8B
+{}
+
+:LII_unimpl                  is op=0x9B
+{}
+
+:LAN_unimpl                  is op=0xAB
+{}
+
+:STI_unimpl                  is op=0xB2
+{}
+
+:INI_unimpl                  is op=0xBB
+{}
+
+:RBA_unimpl                  is op=0xC2
+{}
+
+:PHI_unimpl                  is op=0xCB
+{}
+
+:SBA_unimpl                  is op=0xD2
+{}
+
+:EXC_unimpl                  is op=0xD4
+{}
+
+:PLI_unimpl                  is op=0xDB
+{}
+
+:BAR_unimpl                  is op=0xE2
+{}
+
+:LAI_unimpl                  is op=0xEB
+{}
+
+:BAS_unimpl                  is op=0xF2
+{}
+
+:PIA_unimpl                  is op=0xFB
+{}
+
+######## 65C02 instrucitons that should not be present ##########
+#:TSB OPTB                      is (tcc=0 & taaa=0 & td=0) ... & OPTB
+#:TRB OPTB                      is (tcc=0 & taaa=0 & td=1) ... & OPTB
+#:INC A                         is op=0x1A & A
+#:ORA  ZIOP                     is (cc=2 & aaa=0) ... & ZIOP
+#:AND ZIOP                      is (cc=2 & aaa=1) ... & ZIOP
+#:BIT OP2                       is (op=0x34 | op=0x3C) ... & OP2
+#:DEC A                         is op=0x3A & A
+#:EOR ZIOP                      is (cc=2 & aaa=2) ... & ZIOP
+#:STZ imm8                      is op=0x64 ; imm8
+#:ADC ZIOP                      is (cc=2 & aaa=3) ... & ZIOP
+#:STZ imm8,X                    is op=0x74 & X ; imm8
+#:BIT "#"imm8                   is op=0x89; imm8
+#:STA ZIOP                      is (cc=2 & aaa=4) ... & ZIOP
+#:STZ imm16                     is op=0x9C ; imm16
+#:STZ imm16,X                   is op=0x9E & X ; imm16
+#:LDA ZIOP                      is (cc=2 & aaa=5) ... & ZIOP
+#:CMP ZIOP                      is (cc=2 & aaa=6) ... & ZIOP
+#:SBC ZIOP                      is (cc=2 & aaa=7) ... & ZIOP
