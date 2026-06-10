@@ -1,5 +1,8 @@
 @include "6502.slaspec"
 
+
+define register offset=0x40 size=2 [ I_R W ]; # "I" is already used as a bitflag
+
 define token bitopbyte (8)
     bitop           = (0,7)
 
@@ -41,8 +44,6 @@ ADDRIX: (imm16,X) is X; imm16     { addr:2 = imm16 + zext(X); tmp:2 = *:2 addr; 
     local jump = (value & (1 << bitindex)) != 0;
     if (jump) goto REL;
 }
-
-
 
 :BRA  REL                      is op=0x80; REL
 {
@@ -94,18 +95,74 @@ ADDRIX: (imm16,X) is X; imm16     { addr:2 = imm16 + zext(X); tmp:2 = *:2 addr; 
     *:1 ptr = value;
 }
 
+######## Threaded Code instructions ##############
+:NXT                  is op=0x8B
+{
+    local temp:2 = (*:2 I_R);
+    I_R = I_R + 2;
+    goto [temp];
+}
+
+:LII                  is op=0x9B
+{
+    I_R = (*:1 I_R);
+}
+
+:LAI                  is op=0xEB
+{
+    A = (*:2 I_R);
+}
+
+:INI                  is op=0xBB
+{
+    I_R = I_R + 1;
+}
+
+:PHI                  is op=0xCB
+{
+    *:2 SP = I_R;
+    SP = SP - 2;
+}
+
+:PLI                  is op=0xDB
+{
+    I_R = (*:2 SP);
+    SP = SP + 2;
+}
+
+:JP1                   is op=0x0C
+{
+    I_R = inst_start + 1;
+    local temp:2 = (*:2 I_R);
+
+    I_R = I_R + 2;
+    goto [temp];
+}
+
+:TIP                   is op=0x03
+{
+    goto [I_R];
+}
+
+:PIA_unimpl                  is op=0xFB
+{
+    I_R = (*:2 SP);
+    SP = SP + 2;
+    A = (*:1 I_R);
+    I_R = I_R + 1;
+}
+
+:LAN                  is op=0xAB
+{
+    A = (*:1 I_R);
+    I_R = I_R + 1;
+}
 
 ######## Missing Instructions ##############
 :MPY_unimpl                   is op=0x02
 {}
 
-:TIP_unimpl                   is op=0x03
-{}
-
 :JSB0_unimpl                  is op=0x0B
-{}
-
-:JP1_unimpl                   is op=0x0C
 {}
 
 :LAB_unimpl                   is op=0x13
@@ -174,25 +231,10 @@ ADDRIX: (imm16,X) is X; imm16     { addr:2 = imm16 + zext(X); tmp:2 = *:2 addr; 
 :ADD_unimpl                  is op=0x89
 {}
 
-:NXT_unimpl                  is op=0x8B
-{}
-
-:LII_unimpl                  is op=0x9B
-{}
-
-:LAN_unimpl                  is op=0xAB
-{}
-
 :STI_unimpl                  is op=0xB2
 {}
 
-:INI_unimpl                  is op=0xBB
-{}
-
 :RBA_unimpl                  is op=0xC2
-{}
-
-:PHI_unimpl                  is op=0xCB
 {}
 
 :SBA_unimpl                  is op=0xD2
@@ -201,19 +243,10 @@ ADDRIX: (imm16,X) is X; imm16     { addr:2 = imm16 + zext(X); tmp:2 = *:2 addr; 
 :EXC_unimpl                  is op=0xD4
 {}
 
-:PLI_unimpl                  is op=0xDB
-{}
-
 :BAR_unimpl                  is op=0xE2
 {}
 
-:LAI_unimpl                  is op=0xEB
-{}
-
 :BAS_unimpl                  is op=0xF2
-{}
-
-:PIA_unimpl                  is op=0xFB
 {}
 
 ######## 65C02 instrucitons that should not be present ##########
