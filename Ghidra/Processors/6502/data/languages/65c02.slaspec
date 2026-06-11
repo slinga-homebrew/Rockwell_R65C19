@@ -95,6 +95,121 @@ ADDRIX: (imm16,X) is X; imm16     { addr:2 = imm16 + zext(X); tmp:2 = *:2 addr; 
     *:1 ptr = value;
 }
 
+######## Filter Enhancement Instructions ##############
+:ASR                   is op=0x3A
+{
+    local high_bit = A & 0x80;
+
+    A = A >> 1;
+    A = A | high_bit;
+}
+
+:CLW                   is op=0x52
+{
+    W = 0;
+    V = 0;
+}
+
+:EXC imm8                  is op=0xD4 ; imm8
+{
+    local addr:2 = zext(imm8 + X);
+    addr = addr & 0x00FF;
+
+    local temp:1 = (*:1 addr);
+
+    *:1 addr = A;
+    A = temp;
+}
+
+:JSB0_unimpl                  is op=0x0B
+{}
+:JSB1_unimpl                  is op=0x1B
+{}
+:JSB2_unimpl                  is op=0x2B
+{}
+:JSB3_unimpl                  is op=0x3B
+{}
+:JSB4_unimpl                  is op=0x4B
+{}
+:JSB5_unimpl                  is op=0x5B
+{}
+:JSB6_unimpl                  is op=0x6B
+{}
+:JSB7_unimpl                  is op=0x7B
+{}
+
+:LAB                   is op=0x13
+{
+    A = A & 0x7f;
+}
+
+:MPA                   is op=0x12
+{
+    W = zext(A * Y) + W;
+}
+
+:MPY                   is op=0x02
+{
+    A = (A * Y);
+}
+
+:PSH                   is op=0x22
+{
+    *:1 SP = A;
+    SP = SP - 1;
+
+    *:1 SP = X;
+    SP = SP - 1;
+
+    *:1 SP = Y;
+    SP = SP - 1;
+}
+
+:PUL                   is op=0x32
+{
+    Y = (*:1 SP);
+    SP = SP + 1;
+
+    X = (*:1 SP);
+    SP = SP + 1;
+
+    A = (*:1 SP);
+    SP = SP + 1;
+}
+
+:RND_unimpl                   is op=0x42
+{}
+
+:TAW                          is op=0x62
+{
+    W = (zext(A) << 8);
+    W = W & 0xFF00;
+}
+
+:TWA                          is op=0x72
+{
+    W = W & 0x00FF;
+    W = (zext(A) << 8) + W;
+}
+
+:NEG                           is op=0x1A
+{
+    # TODO: Thi shsould be a 2s complement
+    A = -A;
+}
+
+:PHW                          is op=0x23
+{
+    *:2 SP = W;
+    SP = SP - 2;
+}
+
+:PLW                          is op=0x33
+{
+    W = (*:2 SP);
+    SP = SP + 2;
+}
+
 ######## Threaded Code instructions ##############
 :NXT                  is op=0x8B
 {
@@ -158,77 +273,11 @@ ADDRIX: (imm16,X) is X; imm16     { addr:2 = imm16 + zext(X); tmp:2 = *:2 addr; 
     I_R = I_R + 1;
 }
 
-######## Missing Instructions ##############
-:MPY_unimpl                   is op=0x02
+######## Controller Instructions ##############
+:BAR_unimpl                  is op=0xE2
 {}
 
-:JSB0_unimpl                  is op=0x0B
-{}
-
-:LAB_unimpl                   is op=0x13
-{}
-
-:NEG_unimpl                   is op=0x1A
-{}
-
-:JSB1_unimpl                  is op=0x1B
-{}
-
-:MPX_unimpl                   is op=0x12
-{}
-
-:PSH_unimpl                   is op=0x22
-{}
-
-:PHW_unimpl                   is op=0x23
-{}
-
-:JSB2_unimpl                  is op=0x2B
-{}
-
-:PUL_unimpl                   is op=0x32
-{}
-
-:PLW_unimpl                   is op=0x33
-{}
-
-:ASR_unimpl                   is op=0x3A
-{}
-
-:JSB3_unimpl                  is op=0x3B
-{}
-
-:RND_unimpl                   is op=0x42
-{}
-
-:JSB4_unimpl                  is op=0x4B
-{}
-
-:CLW_unimpl                   is op=0x52
-{}
-
-:JSB5_unimpl                  is op=0x5B
-{}
-
-:TAW_unimpl                   is op=0x62
-{}
-
-:ADD_unimpl                   is op=0x64
-{}
-
-:JSB6_unimpl                  is op=0x6B
-{}
-
-:TWA_unimpl                   is op=0x72
-{}
-
-:ADD_unimpl                   is op=0x74
-{}
-
-:JSB7_unimpl                  is op=0x7B
-{}
-
-:ADD_unimpl                  is op=0x89
+:BAS_unimpl                  is op=0xF2
 {}
 
 :STI_unimpl                  is op=0xB2
@@ -240,13 +289,13 @@ ADDRIX: (imm16,X) is X; imm16     { addr:2 = imm16 + zext(X); tmp:2 = *:2 addr; 
 :SBA_unimpl                  is op=0xD2
 {}
 
-:EXC_unimpl                  is op=0xD4
+:ADD_unimpl                   is op=0x64
 {}
 
-:BAR_unimpl                  is op=0xE2
+:ADD_unimpl                   is op=0x74
 {}
 
-:BAS_unimpl                  is op=0xF2
+:ADD_unimpl                  is op=0x89
 {}
 
 ######## 65C02 instrucitons that should not be present ##########
